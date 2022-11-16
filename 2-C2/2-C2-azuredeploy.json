@@ -206,7 +206,7 @@
       }
     },
 
-    "c2SetupScript": "https://raw.githubusercontent.com/AntiSyphon/asazlab-aco/main/2-C2/scripts/Install-C2s.sh",
+    "c2SetupScript": "https://raw.githubusercontent.com/AntiSyphon/asaz-aco/main/2-C2/scripts/Install-C2s.sh",
     "vmName": "[parameters('vmName')]"
   },
   "resources": [

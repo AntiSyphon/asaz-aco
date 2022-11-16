@@ -6,7 +6,7 @@
 		"config": {
 			"isWizard": true,
 			"basics": {
-				"description": "<img width=302 src=\"https://github.com/AntiSyphon/asazlab-aco/raw/main/images/AS.png\">\n\n\n Antisyphon Training Azure Lab Environment\n https://www.asazlab.com",
+				"description": "<img width=302 src=\"https://github.com/AntiSyphon/asaz-aco/raw/main/images/AS.png\">\n\n\n Antisyphon Training Azure Lab Environment\n https://www.asazlab.com",
 				"location": {
 					"label": "Location",
 					"toolTip": "Location for all resources",
