@@ -17,10 +17,6 @@
         "description": "Pricing tier: pergb2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
       }
     },
-    "dataRetention": {
-      "type": "int",
-      "defaultValue": 30
-    },
     "allowedIPAddresses": {
       "type": "string",
       "metadata": {
@@ -62,15 +58,21 @@
         "description": "Location for all resources."
       }
     },
-    "doenablesysmon": {
-      "type": "bool",
-      "defaultValue": true
+    "ASAZLabCode": {
+      "type": "string",
+      "allowedValues": [
+        "ASAZ-ACO"
+      ],
+      "defaultValue": "ASAZ-",
+      "metadata": {
+        "description": "The Antisyphon Class Lab Code ID"
+      }
     },
     "doenablesysmonparsers": {
       "type": "bool",
       "defaultValue": false
     },
-     "doimmediatePurgeDataOn30Days": {
+    "doimmediatePurgeDataOn30Days": {
       "type": "bool",
       "defaultValue": true
     },
@@ -141,9 +143,6 @@
           },
           "allowedIPAddresses": {
             "value": "[parameters('allowedIPAddresses')]"
-          },
-          "enableSysmon": {
-            "value": "[parameters('doenablesysmon')]"
           },
           "location": {
             "value": "[parameters('location')]"
