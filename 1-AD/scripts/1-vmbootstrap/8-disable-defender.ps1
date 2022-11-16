@@ -2,7 +2,7 @@
 mkdir c:\ASAZ
 cd c:\ASAZ
 Add-MpPreference -ExclusionPath C:\ASAZ
-IEX(New-Object Net.Webclient).DownloadString('https://raw.githubusercontent.com/AntiSyphon/asazlab/main/1-AD/scripts/1-vmbootstrap/9-disable-defender%20.ps1') 
+IEX(New-Object Net.Webclient).DownloadString('https://raw.githubusercontent.com/AntiSyphon/asazlab-aco/main/1-AD/scripts/1-vmbootstrap/9-disable-defender%20.ps1') 
                                               
 
 
