@@ -1,0 +1,245 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "pricingTier": {
+      "type": "string",
+      "allowedValues": [
+        "PerGB2018",
+        "Free",
+        "Standalone",
+        "PerNode",
+        "Standard",
+        "Premium"
+      ],
+      "defaultValue": "PerGB2018",
+      "metadata": {
+        "description": "Pricing tier: pergb2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
+      }
+    },
+    "dataRetention": {
+      "type": "int",
+      "defaultValue": 30
+    },
+    "allowedIPAddresses": {
+      "type": "string",
+      "metadata": {
+        "description": "The sourceAddressPrefixes allowed to connect to this deployment"
+      }
+    },
+    "windowsServerVersion": {
+      "type": "string",
+      "defaultValue": "latest",
+      "allowedValues": [
+        "17763.1999.2106060321",
+        "latest"
+      ],
+      "metadata": {
+        "description": "The specific version for the Server VM."
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2s",
+      "allowedValues": [
+        "Standard_A2",
+        "Standard_A3",
+        "Standard_B2s",
+        "Standard_B2ms",
+        "Standard_A2_v2",
+        "Standard_A4_v2",
+        "Standard_DS2",
+        "Standard_DS11"
+      ],
+      "metadata": {
+        "description": "Size of the virtual machine. Reference: https://docs.microsoft.com/en-us/azure/virtual-machines/sizes-general"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "doenablesysmon": {
+      "type": "bool",
+      "defaultValue": true
+    },
+    "doenablesysmonparsers": {
+      "type": "bool",
+      "defaultValue": false
+    },
+     "doimmediatePurgeDataOn30Days": {
+      "type": "bool",
+      "defaultValue": true
+    },
+    "dowscount": {
+      "type": "int",
+      "defaultValue": 1
+    }
+  },
+  "variables": {
+    "uri_azure_win10_ad": "https://raw.githubusercontent.com/AntiSyphon/asazlab/main/1-AD/1-AD-azuredeploy.json",
+    "uri_azure_c2": "https://raw.githubusercontent.com/AntiSyphon/asazlab/main/2-C2/2-C2-azuredeploy.json",
+    "asadminusername": "asadmin",
+    "asadminpassword": "asLabAdmin1!",
+    "asnameprefix": "WS0",
+    "asWSKU": "21h1-pro",
+    "asServerSKU": "2019-Datacenter",
+    "asServerVer": "latest",
+    "asfqdn": "asazlab.com",
+    "asc2": "metasploit",
+    "asc2ubuntusku": "20_04-lts",
+    "asworkspaceprefix": "LA-workspace",
+    "asremoteaccessmode": "AllowPublicIP"
+  },
+  "resources": [
+    {
+      "name": "deployWinAD",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('uri_azure_win10_ad')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUsername": {
+            "value": "[variables('asadminusername')]"
+          },
+          "adminPassword": {
+            "value": "[variables('asadminpassword')]"
+          },
+          "numberOfWorkstations": {
+            "value": "[parameters('dowscount')]"
+          },
+          "vmNamePrefix": {
+            "value": "[variables('asnameprefix')]"
+          },
+          "windowsDesktopSKU": {
+            "value": "[variables('asWSKU')]"
+          },
+          "windowsServerSKU": {
+            "value": "[variables('asServerSKU')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "windowsServerVersion": {
+            "value": "[parameters('windowsServerVersion')]"
+          },
+          "domainFQDN": {
+            "value": "[variables('asfqdn')]"
+          },
+          "identityType": {
+            "value": "SystemAssigned"
+          },
+          "remoteAccessMode": {
+            "value": "[variables('asremoteaccessmode')]"
+          },
+          "allowedIPAddresses": {
+            "value": "[parameters('allowedIPAddresses')]"
+          },
+          "enableSysmon": {
+            "value": "[parameters('doenablesysmon')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployC2",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('uri_azure_c2')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "adminUsername": {
+            "value": "[variables('asadminusername')]"
+          },
+          "authenticationType": {
+            "value": "password"
+          },
+          "adminPasswordOrKey": {
+            "value": "[variables('asadminpassword')]"
+          },
+          "vmName": {
+            "value": "Nux01"
+          },
+          "ubuntuSKU": {
+            "value": "[variables('asc2ubuntusku')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "allowedIPAddresses": {
+            "value": "[parameters('allowedIPAddresses')]"
+          },
+          "c2Framework": {
+            "value": "[variables('asc2')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "vnet-c2/peering-to-remote-vnet-win",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2019-11-01",
+      "dependsOn": [
+        "deployC2",
+        "deployWinAD"
+      ],
+      "location": "[parameters('location')]",
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[reference('deployWinAD').outputs.virtualNetworkId.value]"
+        }
+      }
+    },
+    {
+      "name": "vnet-win/peering-to-remote-vnet-c2",
+      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+      "apiVersion": "2019-11-01",
+      "dependsOn": [
+        "deployC2",
+        "deployWinAD"
+      ],
+      "location": "[parameters('location')]",
+      "properties": {
+        "allowVirtualNetworkAccess": true,
+        "allowForwardedTraffic": false,
+        "allowGatewayTransit": false,
+        "useRemoteGateways": false,
+        "remoteVirtualNetwork": {
+          "id": "[if(not(equals(variables('asc2'), 'None')), reference('deployC2').outputs.virtualNetworkId.value, 'Resource not deployed')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "C2PublicIP": {
+      "type": "string",
+      "value": "[reference('deployC2').outputs.C2PublicIP.value]"
+    },
+    "DCPublicIP": {
+      "type": "string",
+      "value": "[reference('deployWinAD').outputs.DCPublicIP.value]"
+    },
+    "WSPublicIP": {
+      "type": "string",
+      "value": "[reference('deployWinAD').outputs.WSPublicIP.value]"
+    }
+  }
+}
